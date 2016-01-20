@@ -1,19 +1,20 @@
 contract justice { 
-    mapping (address => uint) public coinBalanceOf;
-    event CoinTransfer(address sender, address receiver, uint amount);
+    
+   mapping (address => uint) public justiceBalance;
+   
+   event justiceSent(address receiver, string role, uint amount);
 
-  /* Initializes contract with initial supply tokens to the creator of the contract */
-  function justice(uint supply) {
-        if (supply == 0) supply = 10000;
-        coinBalanceOf[msg.sender] = supply;
+   function justice(uint _supply) {
+        justiceBalance[msg.sender] = _supply;
     }
 
-  /* Very simple trade function */
-  function sendCoin(address receiver, uint amount) returns(bool sufficient) {
-        if (coinBalanceOf[msg.sender] < amount) return false;
-        coinBalanceOf[msg.sender] -= amount;
-        coinBalanceOf[receiver] += amount;
-        CoinTransfer(msg.sender, receiver, amount);
+   function sendJustice(address _receiver, string _role, uint _amount) returns(bool sufficient) {
+        if (justiceBalance[msg.sender] < _amount) {
+            return false;
+        }
+        justiceBalance[msg.sender] -= _amount;
+        justiceBalance[_receiver] += _amount;
+        justiceSent(_receiver, _role, _amount);
         return true;
     }
 }
