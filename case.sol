@@ -1,4 +1,4 @@
-contract justice{function justice(uint256 _supply);function justiceBalance(address )constant returns(uint256 );function sendJustice(address _receiver,string _role,uint256 _amount)returns(bool sufficient);}
+contract token{function token(uint256 _supply);function sendFunds(address _receiver,string _role,uint256 _amount)returns(bool sufficient);function balanceOf(address )constant returns(uint256 );}
 
 contract Case{
     
@@ -24,7 +24,7 @@ contract Case{
     address[] public judges;
     address[] public jury;
     
-    justice public internalJustice; 
+    token public justice; 
     
     Vote[] public votes;
     
@@ -36,10 +36,13 @@ contract Case{
     event judgeSpoke(address judge, string argument);
     event partySpoke(address party, string argument);
     event outOfTurn(address party);
-    //event votingClosed();
-    //event whoWon();
+    // event judgeAdded();
+    // event jurorAdded();
+    // event noFunds();
+    // event votingClosed();
+    // event whoWon();
     
-    function Case(address _treasurer, address _plaintiff, address _defendant, string _description, uint _juryNum, uint _judgesNum, justice _internalJustice, uint _jurorJus, uint _judgeJus){
+    function Case(address _treasurer, address _plaintiff, address _defendant, string _description, uint _juryNum, uint _judgesNum, token _justice, uint _jurorJus, uint _judgeJus){
         treasurer = _treasurer;
         plaintiff = Party({addr: _plaintiff, turn: true});
         defendant = Party({addr: _defendant, turn: false});
@@ -48,7 +51,7 @@ contract Case{
         judgesNum = _judgesNum;
         jurorJus = _jurorJus;
         judgeJus = _judgeJus;
-        internalJustice = justice(_internalJustice);
+        justice = token(_justice);
         caseInitiated(description);
     }
     
@@ -85,10 +88,10 @@ contract Case{
     function distributeJustice(address _receiver, uint _role) returns(bool success){
         if (msg.sender==treasurer){
             if (_role == 1){
-                internalJustice.sendJustice(_receiver, "jurror", jurorJus);
+                justice.sendFunds(_receiver, "jurror", jurorJus);
             }
             else if(_role == 2){
-                internalJustice.sendJustice(_receiver, "judge", judgeJus);
+                justice.sendFunds(_receiver, "judge", judgeJus);
             }
             success = true;
         }
@@ -108,7 +111,7 @@ contract Case{
     }
 
     function judgeSpeak(string _argument) returns(bool success){
-        if (isJudge(msg.sender) && internalJustice.justiceBalance(msg.sender)>0){
+        if (isJudge(msg.sender) && justice.balanceOf(msg.sender)>0){
             judgeSpoke(msg.sender, _argument);
             success = true;
         }
@@ -118,7 +121,7 @@ contract Case{
     }
   
     function juryVote(uint _vote) returns(bool success){
-        if (isJuror(msg.sender) && internalJustice.justiceBalance(msg.sender)>0){
+        if (isJuror(msg.sender) && justice.balanceOf(msg.sender)>0){
             votes[votes.length++] = Vote({voter:msg.sender, party: _vote});
             juryVoted(msg.sender);
             success = true;
@@ -128,7 +131,12 @@ contract Case{
         }
     }
     
+  // function newJudge(){}
+  // function newJuror(){}
   // function caseClosed(){}
   // function collectCollateral(){}
   
 }
+
+
+
