@@ -14,6 +14,7 @@ contract token{function token(uint256 _supply);function balanceOf(address )const
 //    since it is just passed back and forth and is not actually necessary for 
 //    controls implementation. 
 // 7. There is no control to check if the votes are valid.
+// 8. No check when adding new roles if sender is already an other role
 
 contract Case{
     
@@ -34,17 +35,17 @@ contract Case{
     string[] public partyArguments;
     string[] public judgeArguments;
     
-    uint jurySize;
-    uint benchSize;
-    uint jurorJustice;
-    uint judgeJustice;
-    uint partyJustice;
-    uint debateRounds;
-    uint currentRound;
-    uint collateralTarget;
-    uint collateralRaised;
-    uint plaintiffVotes;
-    uint defendantVotes;
+    uint public jurySize;
+    uint public benchSize;
+    uint public jurorJustice;
+    uint public judgeJustice;
+    uint public partyJustice;
+    uint public debateRounds;
+    uint public currentRound;
+    uint public collateralTarget;
+    uint public collateralRaised;
+    uint public plaintiffVotes;
+    uint public defendantVotes;
     
     address public treasurer; 
     address public winner;
