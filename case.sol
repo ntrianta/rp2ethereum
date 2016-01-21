@@ -1,7 +1,10 @@
 contract token{function token(uint256 _supply);function sendFunds(address _receiver,string _role,uint256 _amount)returns(bool sufficient);function balanceOf(address )constant returns(uint256 );}
 
+//This contract simulates a civil law case trial.
 contract Case{
     
+    mapping (address => uint) public collateralOf;
+
     struct Vote{
         address voter;
         uint party;
@@ -14,14 +17,18 @@ contract Case{
     
     string public description;
     string public turn; 
+    string[] public partyArguments;
+    string[] public judgeArguments;
     
-    uint juryNum;
-    uint judgesNum;
-    uint jurorJus;
-    uint judgeJus;
+    uint jurySize;
+    uint benchSize;
+    uint jurorJustice;
+    uint judgeJustice;
+    uint collateralTarget;
+    uint collateralRaised;
     
     address public treasurer; 
-    address[] public judges;
+    address[] public bench;
     address[] public jury;
     
     token public justice; 
@@ -36,22 +43,42 @@ contract Case{
     event judgeSpoke(address judge, string argument);
     event partySpoke(address party, string argument);
     event outOfTurn(address party);
-    // event judgeAdded();
-    // event jurorAdded();
-    // event noFunds();
+    event judgeAdded(address judge);
+    event judgeNotAdded(address judge);
+    event jurorAdded(address juror);
+    event jurorNotAdded(address juror);
+    event caseReady();
+    event caseNotReady();
+    event justiceSent(address receiver);
+    event justiceNotSent();
     // event votingClosed();
     // event whoWon();
     
-    function Case(address _treasurer, address _plaintiff, address _defendant, string _description, uint _juryNum, uint _judgesNum, token _justice, uint _jurorJus, uint _judgeJus){
+    modifier fullCourt() { 
+        if (bench.length == benchSize && jury.length == jurySize && 
+        collateralRaised == collateralTarget){ 
+            caseReady(); 
+            _
+        }
+        else{
+            caseNotReady();
+            _
+        }
+    }
+
+    function Case(address _treasurer, address _plaintiff, address _defendant, 
+    string _description, uint _jurySize, uint _benchSize, token _justice, 
+    uint _jurorJustice, uint _judgeJustice){
         treasurer = _treasurer;
         plaintiff = Party({addr: _plaintiff, turn: true});
         defendant = Party({addr: _defendant, turn: false});
         description = _description;
-        juryNum = _juryNum;
-        judgesNum = _judgesNum;
-        jurorJus = _jurorJus;
-        judgeJus = _judgeJus;
+        jurySize = _jurySize;
+        benchSize = _benchSize;
+        jurorJustice = _jurorJustice;
+        judgeJustice = _judgeJustice;
         justice = token(_justice);
+        collateralTarget = benchSize*judgeJustice + jurySize*jurorJustice;
         caseInitiated(description);
     }
     
@@ -60,8 +87,8 @@ contract Case{
     // non sophisticated method
     
     function isJudge(address _key) internal constant returns(bool){
-         for (uint i = 0; i < judges.length; ++i) {
-             if (judges[i] == _key){
+         for (uint i = 0; i < bench.length; ++i) {
+             if (bench[i] == _key){
                  return true;
              }
          }
@@ -82,21 +109,54 @@ contract Case{
         defendant.turn = !defendant.turn;
     }
     
+    // Judges can be added only by one of the two opposing parties.
+    // There is currently no check to prevent one party adding more judges 
+    // than the other.
+    function newJudge(address _judge) returns(uint judgeID){
+        if(bench.length< benchSize && !isJudge(_judge) 
+        && (msg.sender==plaintiff.addr || msg.sender==defendant.addr)){
+            judgeID = bench.length++;
+            bench[judgeID] = msg.sender;
+            collateralOf[msg.sender] = 0;
+            judgeAdded(msg.sender);
+        }
+        else{
+            judgeID = 999; //let 999 be our error code
+            judgeNotAdded(_judge);
+        }
+    }
+    
+    //Jurors add themselves provided that the jury is not full.
+    function newJuror() returns(uint jurorID){
+        if(jury.length< jurySize && !isJuror(msg.sender)){
+            jurorID = jury.length++;
+            jury[jurorID] = msg.sender;
+            collateralOf[msg.sender] = 0;
+            jurorAdded(msg.sender);
+        }
+        else{
+            jurorID = 999; //let 999 be our error code
+            jurorNotAdded(msg.sender);
+        }
+    }
+    
     // There is no string comparison implemented in solidity as of yet.
     // We will thas use integer codes to distinguish between the different
     // court roles when distributing 'justice'.
     function distributeJustice(address _receiver, uint _role) returns(bool success){
-        if (msg.sender==treasurer){
+        if(msg.sender==treasurer && collateralOf[_receiver]>0){
             if (_role == 1){
-                justice.sendFunds(_receiver, "jurror", jurorJus);
+                justice.sendFunds(_receiver, "jurror", jurorJustice);
             }
             else if(_role == 2){
-                justice.sendFunds(_receiver, "judge", judgeJus);
+                justice.sendFunds(_receiver, "judge", judgeJustice);
             }
             success = true;
+            justiceSent(_receiver);
         }
         else{
             success = false;
+            justiceNotSent();
         }
     }
     
@@ -131,11 +191,12 @@ contract Case{
         }
     }
     
-  // function newJudge(){}
-  // function newJuror(){}
-  // function caseClosed(){}
-  // function collectCollateral(){}
-  
+    function collectCollateral(){
+        uint amount = msg.value;
+        collateralRaised += amount;
+        collateralOf[msg.sender] += amount;
+    }
+    // function caseClosed(){}
 }
 
 
