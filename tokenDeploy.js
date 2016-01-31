@@ -1,4 +1,4 @@
-var _supply  = /* var of type uint256 here */ ;
+var _supply = 1000 ;
 var tokenContract = web3.eth.contract([{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"type":"function"},{"constant":false,"inputs":[{"name":"_sender","type":"address"},{"name":"_receiver","type":"address"},{"name":"_amount","type":"uint256"}],"name":"sendFunds","outputs":[{"name":"sufficient","type":"bool"}],"type":"function"},{"inputs":[{"name":"_supply","type":"uint256"}],"type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"sender","type":"address"},{"indexed":false,"name":"receiver","type":"address"},{"indexed":false,"name":"amount","type":"uint256"}],"name":"fundsTransfered","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"sender","type":"address"},{"indexed":false,"name":"receiver","type":"address"},{"indexed":false,"name":"amount","type":"uint256"}],"name":"fundsNotTransfered","type":"event"}]);
 var token = tokenContract.new(
    _supply,
