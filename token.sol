@@ -1,20 +1,22 @@
 contract token { 
     
-   mapping (address => uint) public balance;
+   mapping (address => uint) public balanceOf;
    
    event fundsTransfered(address sender, address receiver, uint amount);
+   event fundsNotTransfered(address sender, address receiver, uint amount);
 
    function token(uint _supply) {
-        balance[msg.sender] = _supply;
-    }
+        balanceOf[msg.sender] = _supply;
+   }
 
-   function sendFunds(address _receiver, string _role, uint _amount) returns(bool sufficient) {
-        if (balance[msg.sender] < _amount) {
+   function sendFunds(address _sender, address _receiver, uint _amount) returns(bool sufficient) {
+        if (balanceOf[_sender] < _amount) {
             return false;
+            fundsNotTransfered(_sender, _receiver, _amount);
         }
-        balance[msg.sender] -= _amount;
-        balance[_receiver] += _amount;
-        fundsTransfered(msg.sender, _receiver, _amount);
+        balanceOf[_sender] -= _amount;
+        balanceOf[_receiver] += _amount;
+        fundsTransfered(_sender, _receiver, _amount);
         return true;
     }
 }
